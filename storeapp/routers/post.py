@@ -20,7 +20,7 @@ def find_post(post_id: int):
     return post_table.get(post_id)
 
 
-@router.post("/", response_model=UserPostOut)
+@router.post("/", response_model=UserPostOut, status_code=201)
 async def create_post(post: UserPostIn):
     data = post.model_dump()
     post_id = len(post_table) + 1
@@ -49,6 +49,7 @@ async def create_comment(comment: CommentIn):
 
 @router.get("/{post_id}/comments", response_model=list[CommentOut])
 async def read_comments(post_id: int):
+    print(comment_table)
     post = find_post(post_id)
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
