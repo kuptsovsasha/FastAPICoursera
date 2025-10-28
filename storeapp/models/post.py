@@ -8,6 +8,9 @@ class UserPostIn(BaseModel):
 class UserPostOut(UserPostIn):
     id: int
 
+    class ConfigDict:
+        from_attributes = True
+
 
 class CommentIn(BaseModel):
     post_id: int
@@ -16,6 +19,9 @@ class CommentIn(BaseModel):
 
 class CommentOut(CommentIn):
     id: int
+
+    class ConfigDict:
+        from_attributes = True
 
 
 class UserPostWithComments(UserPostOut):

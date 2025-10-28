@@ -1,11 +1,15 @@
+import os
 from typing import AsyncGenerator, Generator
 
 import pytest
+
+os.environ["ENV_STATE"] = "test"
+
 from fastapi.testclient import TestClient
 from httpx import ASGITransport, AsyncClient
 
+from storeapp.databse import database
 from storeapp.main import app
-from storeapp.routers.post import comment_table, post_table
 
 
 @pytest.fixture(scope="session")
@@ -20,9 +24,9 @@ def client() -> Generator[TestClient, None, None]:
 
 @pytest.fixture(autouse=True)
 async def db() -> AsyncGenerator[None, None]:
-    post_table.clear()
-    comment_table.clear()
+    await database.connect()
     yield
+    await database.disconnect()
 
 
 @pytest.fixture

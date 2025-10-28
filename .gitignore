@@ -16,3 +16,10 @@ wheels/
 .vscode/
 .idea/
 *.swp
+
+#virtual environment
+.env
+
+# local db
+local.db
+dev.db

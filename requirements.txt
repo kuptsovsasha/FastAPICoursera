@@ -11,3 +11,8 @@ starlette==0.48.0
 typing-extensions==4.15.0
 typing-inspection==0.4.2
 uvicorn==0.38.0
+sqlalchemy==2.0.32
+aiosqlite==0.18.0
+python-dotenv==1.0.0
+databases
+pydantic-settings
