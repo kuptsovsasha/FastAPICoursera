@@ -23,3 +23,6 @@ wheels/
 # local db
 local.db
 dev.db
+
+# log files
+*.log

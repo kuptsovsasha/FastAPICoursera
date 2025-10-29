@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import APIRouter
 from fastapi.exceptions import HTTPException
 
@@ -9,6 +11,8 @@ from storeapp.models.post import (
     UserPostOut,
     UserPostWithComments,
 )
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -29,6 +33,8 @@ async def create_post(post: UserPostIn):
 @router.get("/", response_model=list[UserPostOut])
 async def read_posts():
     query = post_table.select()
+    logger.info("Reading posts")
+    logger.debug(query)
     return await database.fetch_all(query)
 
 

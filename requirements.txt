@@ -16,3 +16,7 @@ aiosqlite==0.18.0
 python-dotenv==1.0.0
 databases
 pydantic-settings
+rich
+asgi-correlation-id
+python-json-logger
+logtail-python
