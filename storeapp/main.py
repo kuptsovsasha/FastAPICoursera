@@ -1,5 +1,6 @@
 from contextlib import asynccontextmanager
 
+from asgi_correlation_id import CorrelationIdMiddleware
 from fastapi import FastAPI
 
 from storeapp.databse import database
@@ -16,5 +17,6 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
+app.add_middleware(CorrelationIdMiddleware)
 
 app.include_router(post_router, prefix="/posts")

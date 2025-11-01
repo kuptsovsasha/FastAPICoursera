@@ -25,6 +25,8 @@ async def find_post(post_id: int):
 @router.post("/", response_model=UserPostOut, status_code=201)
 async def create_post(post: UserPostIn):
     data = post.model_dump()
+    logger.error("Creating post")
+    logger.error(data)
     query = post_table.insert().values(data)
     record_id = await database.execute(query)
     return {**data, "id": record_id}
@@ -33,7 +35,7 @@ async def create_post(post: UserPostIn):
 @router.get("/", response_model=list[UserPostOut])
 async def read_posts():
     query = post_table.select()
-    logger.info("Reading posts")
+    logger.debug("Reading posts")
     logger.debug(query)
     return await database.fetch_all(query)
 

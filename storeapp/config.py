@@ -14,6 +14,7 @@ class Settings(BaseSettings):
 class GlobalConfig(Settings):
     DATABASE_URL: Optional[str] = None
     DB_FORCE_ROLLBACK: bool = False
+    LOGTAIL_API_KEY: Optional[str] = None
 
     model_config = ConfigDict(extra="ignore")
 
