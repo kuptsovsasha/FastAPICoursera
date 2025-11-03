@@ -22,4 +22,5 @@ python-json-logger
 logtail-python
 python-jose
 python-multipart
-passlib[bcrypt]
+passlib
+bcrypt==4.3.0
