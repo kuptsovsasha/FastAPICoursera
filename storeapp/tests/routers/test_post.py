@@ -2,44 +2,67 @@ import pytest
 from httpx import AsyncClient
 
 
-async def create_post(body: str, async_client: AsyncClient) -> dict:
-    response = await async_client.post("/posts/", json={"body": body})
-    return response.json()
-
-
-async def create_comment(post_id: int, content: str, async_client: AsyncClient) -> dict:
+async def create_post(
+    body: str, async_client: AsyncClient, logged_in_token: str
+) -> dict:
     response = await async_client.post(
-        "/posts/comment", json={"post_id": post_id, "body": content}
+        "/posts/",
+        json={"body": body},
+        headers={"Authorization": f"Bearer {logged_in_token}"},
     )
     return response.json()
 
 
-@pytest.fixture()
-async def created_post(async_client: AsyncClient) -> dict:
-    post = await create_post("Test post body", async_client)
+async def create_comment(
+    post_id: int, content: str, async_client: AsyncClient, logged_in_token: str
+) -> dict:
+    response = await async_client.post(
+        "/posts/comment",
+        json={"post_id": post_id, "body": content},
+        headers={"Authorization": f"Bearer {logged_in_token}"},
+    )
+    return response.json()
+
+
+@pytest.fixture(scope="function")
+async def created_post(async_client: AsyncClient, logged_in_token: str) -> dict:
+    post = await create_post("Test post body", async_client, logged_in_token)
     return post
 
 
-@pytest.fixture()
-async def created_comment(created_post: dict, async_client: AsyncClient) -> dict:
+@pytest.fixture(scope="function")
+async def created_comment(
+    created_post: dict, async_client: AsyncClient, logged_in_token: str
+) -> dict:
     comment = await create_comment(
-        created_post["id"], "Test comment content", async_client
+        created_post["id"], "Test comment content", async_client, logged_in_token
     )
     return comment
 
 
 @pytest.mark.anyio
-async def test_create_post(async_client: AsyncClient):
-    response = await async_client.post("/posts/", json={"body": "Hello, world!"})
+async def test_create_post(
+    async_client: AsyncClient, registered_user: dict, logged_in_token: str
+):
+    response = await async_client.post(
+        "/posts/",
+        json={"body": "Hello, world!"},
+        headers={"Authorization": f"Bearer {logged_in_token}"},
+    )
     assert response.status_code == 201
     data = response.json()
     assert data["body"] == "Hello, world!"
+    assert data["user_id"] == registered_user["id"]
     assert "id" in data
 
 
 @pytest.mark.anyio
-async def test_create_post_missing_body(async_client: AsyncClient):
-    response = await async_client.post("/posts/", json={})
+async def test_create_post_missing_body(
+    async_client: AsyncClient, logged_in_token: str
+):
+    response = await async_client.post(
+        "/posts/", json={}, headers={"Authorization": f"Bearer {logged_in_token}"}
+    )
     assert response.status_code == 422  # Unprocessable Entity
 
 
@@ -53,23 +76,33 @@ async def test_get_all_posts(async_client: AsyncClient, created_post: dict):
 
 
 @pytest.mark.anyio
-async def test_create_comment(async_client: AsyncClient, created_post: dict):
+async def test_create_comment(
+    async_client: AsyncClient,
+    created_post: dict,
+    registered_user: dict,
+    logged_in_token: str,
+):
     response = await async_client.post(
         "/posts/comment",
         json={"post_id": created_post["id"], "body": "This is a comment."},
+        headers={"Authorization": f"Bearer {logged_in_token}"},
     )
     assert response.status_code == 201
     data = response.json()
     assert data["body"] == "This is a comment."
+    assert data["user_id"] == registered_user["id"]
     assert data["post_id"] == created_post["id"]
     assert "id" in data
 
 
 @pytest.mark.anyio
-async def test_create_comment_invalid_post(async_client: AsyncClient):
+async def test_create_comment_invalid_post(
+    async_client: AsyncClient, logged_in_token: str
+):
     response = await async_client.post(
         "/posts/comment",
         json={"post_id": 9999, "body": "This comment should fail."},
+        headers={"Authorization": f"Bearer {logged_in_token}"},
     )
     assert response.status_code == 404  # Not Found
 

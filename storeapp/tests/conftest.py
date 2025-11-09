@@ -45,3 +45,9 @@ async def registered_user(async_client: AsyncClient) -> dict:
     user_response = response.json()
     user_response["password"] = user_data["password"]
     return user_response
+
+
+@pytest.fixture
+async def logged_in_token(async_client: AsyncClient, registered_user: dict) -> str:
+    response = await async_client.post("/users/token", json=registered_user)
+    return response.json()["access_token"]

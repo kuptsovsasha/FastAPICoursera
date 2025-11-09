@@ -1,6 +1,9 @@
 import datetime
 import logging
+from typing import Annotated
 
+from fastapi import Depends, HTTPException
+from fastapi.security import OAuth2PasswordBearer
 from jose import jwt
 from passlib.context import CryptContext
 
@@ -10,6 +13,7 @@ from storeapp.databse import database, user_table
 logger = logging.getLogger(__name__)
 
 pwd_context = CryptContext(schemes=["bcrypt"])
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="users/token")
 
 config = get_config()
 
@@ -22,7 +26,7 @@ class UserNotFoundError(Exception):
     pass
 
 
-def creat_access_token(email: str) -> str:
+def create_access_token(email: str) -> str:
     logger.debug("Creating access token", extra={"email": email})
     expire = datetime.datetime.now(datetime.UTC) + datetime.timedelta(
         minutes=ACCESS_TOKEN_EXPIRE_MINUTES
@@ -57,4 +61,29 @@ async def authenticate_user(email: str, password: str):
         raise UserNotFoundError(email)
     if not verify_password(password, user["password"]):
         raise UserNotFoundError(email)
+    return user
+
+
+async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
+    logger.debug("Getting current user from token")
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        if email is None:
+            raise UserNotFoundError("No email in token")
+    except jwt.ExpiredSignatureError as e:
+        logger.error("Token has expired", exc_info=e)
+        raise HTTPException(
+            status_code=401,
+            detail="Token has expired",
+            headers={"WWW-Authenticate": "Bearer"},
+        ) from e
+
+    except jwt.JWTError as e:
+        logger.error("JWT decoding error", exc_info=e)
+        raise UserNotFoundError("Invalid token")
+
+    user = await get_user(email)
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
     return user

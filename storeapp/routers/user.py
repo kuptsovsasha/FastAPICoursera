@@ -1,13 +1,14 @@
 import logging
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
+from fastapi.security import OAuth2PasswordRequestForm
 
 from storeapp.databse import database, user_table
 from storeapp.models.user import UserIn
 from storeapp.security import (
     UserNotFoundError,
     authenticate_user,
-    creat_access_token,
+    create_access_token,
     get_password_hash,
     get_user,
 )
@@ -31,11 +32,13 @@ async def register_user(user: UserIn):
 
 
 @router.post("/token")
-async def login_user(user: UserIn):
+async def login_user(form_data: OAuth2PasswordRequestForm = Depends()):
     try:
-        user = await authenticate_user(email=user.email, password=user.password)
+        user = await authenticate_user(
+            email=form_data.username, password=form_data.password
+        )
     except UserNotFoundError:
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
-    access_token = creat_access_token(email=user["email"])
+    access_token = create_access_token(email=user["email"])
     return {"access_token": access_token}

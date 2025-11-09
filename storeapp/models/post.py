@@ -7,6 +7,7 @@ class UserPostIn(BaseModel):
 
 class UserPostOut(UserPostIn):
     id: int
+    user_id: int
 
     class ConfigDict:
         from_attributes = True
@@ -19,11 +20,12 @@ class CommentIn(BaseModel):
 
 class CommentOut(CommentIn):
     id: int
+    user_id: int
 
     class ConfigDict:
         from_attributes = True
 
 
-class UserPostWithComments(UserPostOut):
+class UserPostWithComments(BaseModel):
     post: UserPostOut
     comments: list[CommentOut] = []
